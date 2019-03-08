@@ -112,11 +112,9 @@ double* ping(int angle,double coordinates[])
 
   // x coordinate
   coordinates[0] = sin(angle*180/M_PI)*distance_cm;
-  Genotronex.print("X=");
   Genotronex.println(coordinates[0]);
   // y coordinate
-  coordinates[1] = abs(cos(angle*180/M_PI)*distance_cm);
-  Genotronex.print("Y=");
+  coordinates[1] = cos(angle*180/M_PI)*distance_cm;
   Genotronex.println(coordinates[1]);
   return coordinates;
 }
