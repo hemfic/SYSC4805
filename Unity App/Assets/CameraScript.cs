@@ -33,17 +33,18 @@ public class CameraScript : MonoBehaviour
         {
             if (input != 0.0f)
             {
+                print("4");
                 sp.Write("s");
-                sp.DiscardInBuffer();
-                sp.BaseStream.Flush();
+                print("5");
                 for (int i = 0; i < sweepSize; i += 1) {
-                    float x = float.Parse(sp.ReadLine());
+                    string inX = sp.ReadLine();
+                    float x = float.Parse(inX);
                     float y = float.Parse(sp.ReadLine());
                     float[] xy = { x, y };
                     inputData.Add(xy);
                 }
                 foreach (float[] f in inputData) {
-                    Debug.Log(f[0]+", "+f[1]);
+                    //Debug.Log(f[0]+", "+f[1]);
                     if (f[1] > 3)
                     {
                         GameObject block = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -53,7 +54,7 @@ public class CameraScript : MonoBehaviour
                         listOfGameObjects.Add(block);
                     }
                 }
-                Debug.Log("List Count: " + listOfGameObjects.Count);
+                //Debug.Log("List Count: " + listOfGameObjects.Count);
                 
                     for (int j = 0; j < listOfGameObjects.Count; j += 1)
                     {
@@ -71,7 +72,7 @@ public class CameraScript : MonoBehaviour
                                     
                                 }
                             }
-                        print(refinedPoints.Count);
+                        //print(refinedPoints.Count);
                         }
                     }
                 /*
@@ -93,6 +94,7 @@ public class CameraScript : MonoBehaviour
                 Debug.DrawLine(transform.position, transform.position + averageVel * 5, Color.white);
                 Debug.DrawLine(refinedPoints[0].transform.position, refinedPoints[refinedPoints.Count - 1].transform.position, Color.green);
                 //refinedPoints.RemoveAt(0);*/
+                print("1");
                 Vector3 start = refinedPoints[0].transform.position;
                 Vector3 end = refinedPoints[refinedPoints.Count-1].transform.position;
                 Vector3 wallDirection = start - end;
@@ -101,9 +103,13 @@ public class CameraScript : MonoBehaviour
                 float angle = Vector3.SignedAngle(heading, direction,Vector3.up);
                 float globalAngle;
                 string command;
+                byte[] sendData;
+                print("2");
                 if (angle < 3)
                 {
-                    sp.Write("f:30");
+                    command = "f:300;";
+                    sendData = System.Text.Encoding.ASCII.GetBytes(command);
+                    sp.Write(sendData,0,sendData.Length);
                     globalAngle = Vector3.SignedAngle(heading, Vector3.zero, Vector3.up);
                     float deltaX = Mathf.Sin(globalAngle * Mathf.PI / 180) * 30;
                     float deltaY = Mathf.Cos(globalAngle * Mathf.PI / 180) * 30;
@@ -111,23 +117,28 @@ public class CameraScript : MonoBehaviour
                 }
                 else if (angle < 0)
                 {
-                    command = "l:" + angle.ToString();
-                    sp.Write(command);
-                    sp.Write("f:30");
+                    command = "l:" + angle.ToString()+";";
+                    sendData = System.Text.Encoding.ASCII.GetBytes(command);
+                    sp.Write(sendData, 0, sendData.Length); command = "f:300;";
+                    sendData = System.Text.Encoding.ASCII.GetBytes(command);
+                    sp.Write(sendData, 0, sendData.Length);
                     globalAngle = Vector3.SignedAngle(direction, Vector3.zero, Vector3.up);
                     float deltaX = Mathf.Sin(globalAngle * Mathf.PI / 180) * 30;
                     float deltaY = Mathf.Cos(globalAngle * Mathf.PI / 180) * 30;
                     rb.MovePosition(rb.position + new Vector3(deltaX, 0, deltaY));
                 }
                 else {
-                    command = "r:" + angle.ToString();
-                    sp.Write(command);
-                    sp.Write("f:30");
+                    command = "r:" + angle.ToString()+";";
+                    sendData = System.Text.Encoding.ASCII.GetBytes(command);
+                    sp.Write(sendData, 0, sendData.Length); command = "f:300;";
+                    sendData = System.Text.Encoding.ASCII.GetBytes(command);
+                    sp.Write(sendData, 0, sendData.Length);
                     globalAngle = Vector3.SignedAngle(direction, Vector3.zero, Vector3.up);
                     float deltaX = Mathf.Sin(globalAngle * Mathf.PI / 180) * 30;
                     float deltaY = Mathf.Cos(globalAngle * Mathf.PI / 180) * 30;
-                    rb.MovePosition(rb.position + new Vector3(deltaX, 0, deltaY));
+                    rb.MovePosition(rb.position + new Vector3(deltaY, 0, deltaX));
                 }
+                print("3");
                 
 
                 
