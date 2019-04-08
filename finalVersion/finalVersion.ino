@@ -5,6 +5,7 @@
 Servo servo;
 SoftwareSerial BTSerial(3, 2); // TX,RX
 int servoPin=11;
+// Set trigger and echo pin for ultransonic
 int trig=13;
 int echo=12;
 
@@ -17,13 +18,16 @@ const int BIB = 6;
 byte speed = 100;
 
 void setup() {
+  // Turn on serial output at 9600 baud for both the monitor and the bluetooth module.
   Serial.begin(9600);
   BTSerial.begin(9600);
   BTSerial.flush();
+  // Define H-bridge terminals that drive motors as output.
   pinMode(AIA, OUTPUT);
   pinMode(AIB, OUTPUT);
   pinMode(BIA, OUTPUT);
   pinMode(BIB, OUTPUT);
+  // Define PWM pin 11 as servo.
   servo.attach(11);
 }
 void loop() {
@@ -35,8 +39,7 @@ void loop() {
   int param=0;
   int charsAvailable=BTSerial.available();
   if(charsAvailable>0){
-  //if(Serial.available()>0){
-    //command=Serial.readStringUntil(':');
+    // Wait for commands to come in through the bluetooth serial channel.
     command = BTSerial.read();
     
     if((command!=115||command==102||command==98||command==108||command==114)&&command!=255&&command!=254){
@@ -78,6 +81,9 @@ void loop() {
   
 }
 
+/*
+ *  Test function to ping with ultrasonic and print distances read.
+ */
 void distance(){
   double distance_cm;
   double dummy=4;
@@ -90,6 +96,14 @@ void distance(){
   
 }
 
+/*
+ * Description: Sweeps the full range of the servo motor and does an
+ *              ultrasonic ping at 5 degree intervals.
+ *              
+ * Parameters:  none
+ * 
+ * Returns:     nothing
+ */
 void sweep(){
   int i;
   double xy[2];
@@ -115,7 +129,7 @@ void sweep(){
  * Parameters:  angle - the angle of the sensor (0-180; left-right)
  * 
  * Returns:     an array of double containing a single x and y
- *              coordinate averaged over 10 samples.
+ *              coordinate.
  */
 double* ping(int angle,double coordinates[])
 {
@@ -128,38 +142,41 @@ double* ping(int angle,double coordinates[])
   servo.write(angle);
   delay(600);
   
-  
-    microsec = ultrasonic.timing();
-    sampleTotal += ultrasonic.CalcDistance(microsec,Ultrasonic::CM);
-    delay(100);
+  microsec = ultrasonic.timing();
+  sampleTotal += ultrasonic.CalcDistance(microsec,Ultrasonic::CM);
+  delay(100);
   
   
   distance_cm = sampleTotal;
-//  Serial.println(distance_cm);
+
   // Make angles to the left of the sensor yield positive x positions.
   if(angle >= 90)
-  { left=true;
+  { 
+    left=true;
     angle -= 90;
   }
   else
-  { left=false;
+  { 
+    left=false;
     angle = 90 - angle;
   }
-  //Serial.println(angle);
+  
   // x coordinate
   coordinates[0] = sin((angle*M_PI)/180)*distance_cm;
   if(left){
     coordinates[0]=coordinates[0]*-1;  
   }
-  //Serial.println(coordinates[0]);
+  
   BTSerial.println(coordinates[0]);
   // y coordinate
   coordinates[1] = abs(cos((angle*M_PI)/180)*distance_cm);
-  //Serial.println(coordinates[1]);
   BTSerial.println(coordinates[1]);
   return coordinates;
 }
 
+/*
+ *  Test function to ping with ultrasonic and print distances read.
+ */
 float sonic(){
   float cmdistance;
   long microsec = ultrasonic.timing();
@@ -171,15 +188,30 @@ float sonic(){
   return cmdistance;
 }
 
-
+/*
+ * Description: Function to drive motors in backward direction.
+ *              
+ * Parameters:  t - amount of time in milliseconds the robot should drive.
+ * 
+ * Returns:     nothing
+ */
 void backward(int t)
-{ analogWrite(AIA, 0);
+{ 
+  analogWrite(AIA, 0);
   analogWrite(AIB, speed);
   analogWrite(BIA, 0);
   analogWrite(BIB, speed+25);
   delay(t);
   
 }
+
+/*
+ * Description: Function to drive motors in forward direction.
+ *              
+ * Parameters:  t - amount of time in milliseconds the robot should drive.
+ * 
+ * Returns:     nothing
+ */
 void forward(int t)
 { 
   analogWrite(AIA, speed);
@@ -188,6 +220,15 @@ void forward(int t)
   analogWrite(BIB, 0);
   delay(t);
 }
+
+/*
+ * Description: Function to drive motors so that the robot will
+ *              pivot in place right.
+ *              
+ * Parameters:  t - amount of time in milliseconds the robot should turn.
+ * 
+ * Returns:     nothing
+ */
 void pivotRight(int t)
 {
   analogWrite(AIA, speed);
@@ -196,6 +237,15 @@ void pivotRight(int t)
   analogWrite(BIB, speed+25);
   delay(t);
 }
+
+/*
+ * Description: Function to drive motors so that the robot will
+ *              pivot in place left.
+ *              
+ * Parameters:  t - amount of time in milliseconds the robot should turn.
+ * 
+ * Returns:     nothing
+ */
 void pivotLeft(int t)
 {
   analogWrite(AIA, 0);
@@ -204,6 +254,15 @@ void pivotLeft(int t)
   analogWrite(BIB, 0);
   delay(t);
 }
+
+/*
+ * Description: Function to set the polarity of all H-bridge terminals
+ *              to zero and stop the motors.
+ *              
+ * Parameters:  none
+ * 
+ * Returns:     nothing
+ */
 void stopDriving(){
   analogWrite(AIA, 0);
   analogWrite(AIB, 0);
